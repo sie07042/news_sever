@@ -1,0 +1,9 @@
+.article-card a {
+    text-decoration: none;
+    display : block;
+}
+
+.article-card img{
+    width: 10rem;
+    height: auto;
+}
