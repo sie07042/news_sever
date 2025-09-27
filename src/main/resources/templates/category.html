@@ -2,8 +2,8 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{layout :: head('Administrator')}">
 </head>
-<body>
-    <div class="container my-5">
+<body th:replace="~{layout :: base(~{::section})}">
+    <section>
         <div>
             <h2>카테고리 목록</h2>
         </div>
@@ -15,10 +15,10 @@
             </tr>
             </thead>
             <tbody>
-                <tr th:each="cate : ${category}">
-                    <td th:text="${cate.name}"></td>
-                    <td th:text="${cate.memo}"></td>
-                </tr>
+            <tr th:each="cate : ${category}">
+                <td th:text="${cate.name}"></td>
+                <td th:text="${cate.memo}"></td>
+            </tr>
             </tbody>
         </table>
 
@@ -29,7 +29,7 @@
                 <input type="submit" class="htn btn-primary" value="저장">
             </form>
         </div>
-    </div>
+    </section>
 
     <!-- GET https://www.google.com/search?guery=아이유 -->
     <!-- POST https://www.google.com/search -->

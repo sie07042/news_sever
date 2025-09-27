@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -42,10 +43,10 @@ public class Source {
     private String country;
 
     @Column(name="created_at",updatable = false,insertable = false)
-    private LocalTime createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name="updated_at",insertable = false)
-    private LocalTime updatedAt;
+    private LocalDateTime updatedAt;
 
     public static SourceDTO toDTO(Source source){
         SourceDTO dto = new SourceDTO();
@@ -53,9 +54,9 @@ public class Source {
         dto.setName(source.getName());
         dto.setDescription(source.getDescription());
         dto.setUrl(source.getUrl());
-        dto.setLanguage(dto.getLanguage());
-        dto.setCategory(dto.getCategory());
-        dto.setCountry(dto.getCountry());
+        dto.setLanguage(source.getLanguage());
+        dto.setCategory(source.getCategory());
+        dto.setCountry(source.getCountry());
 
         return dto;
     }

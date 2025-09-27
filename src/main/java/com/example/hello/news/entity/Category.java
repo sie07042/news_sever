@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Length;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -27,8 +28,8 @@ public class Category {
     private String memo;
 
     @Column(name="created_at",updatable = false,insertable = false)
-    private LocalTime createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name="updated_at",insertable = false)
-    private LocalTime updatedAt;
+    private LocalDateTime updatedAt;
 }
