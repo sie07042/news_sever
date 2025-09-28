@@ -1,8 +1,10 @@
 package com.example.hello.news.controller;
 
 import com.example.hello.news.dto.CategoryDTO;
+import com.example.hello.news.dto.CountArticleByCategory;
 import com.example.hello.news.dto.SourceDTO;
 import com.example.hello.news.entity.Category;
+import com.example.hello.news.service.ArticleService;
 import com.example.hello.news.service.NewsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -21,6 +23,7 @@ import java.util.List;
 @RequestMapping("/admin") //localhost:8090/admin => 해당 라우터 경로 아래로는 이 클래스에 처리를 담당한다.
 public class AdminController {
     private final NewsService newsService;
+    private final ArticleService articleService;
 
     @GetMapping("/category")
     public String categorise(Model model){
@@ -79,17 +82,30 @@ public class AdminController {
         return "redirect:/admin/source";
     }
 
-    @GetMapping("/inputArticles")
-    public String inputArticles(@RequestParam("category")String category,Model model){
+    @GetMapping("/article")
+    public String article(Model model){
+        List<CategoryDTO> categorise = newsService.getCategories();
+        Long articleCount = articleService.getTotalArticleCount();
+        List<CountArticleByCategory>countByCategories = articleService.countArticleByCategories();
+
+        model.addAttribute("articleCount", articleCount);
+        model.addAttribute("countsByCategory", countByCategories);
+        model.addAttribute("categories", categorise);
+
+        return "article";
+    }
+
+    @PostMapping("/inputArticles")
+    public String inputArticles(@RequestParam("categoryName")String category,Model model){
         try {
-            newsService.inputArticles(category);
+            articleService.inputArticles(category);
         } catch (URISyntaxException|IOException|InterruptedException e){
             e.getStackTrace();
             model.addAttribute("error",e.getMessage());
-            return "index";
+            return "article";
         }
 
-        return "index";
+        return "redirect:/admin/article";
     }
 
 }

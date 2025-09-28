@@ -21,10 +21,10 @@ public class Source {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // Auto Increment 자동입력
 
-    @Column(length = 45)
+    @Column(length = 100)
     private String sid;
 
-    @Column(nullable = false, unique = true, length = 45)
+    @Column(nullable = false, unique = true, length = 100)
     private String name;
 
     @Column(length = 500)
