@@ -6,7 +6,14 @@
 <section>
 <div>
     <h2>발행처</h2>
+    <!-- 부트스트랩 이용하여 발행처 갱신 버튼 만들기 -> 버튼에 /inputSources 연결하기-->
+    <a class="btn btn-primary mb-1" th:href="@{/admin/inputSources}" th:text="'발행처 갱신'">발행처 갱신</a>
 </div>
+
+    <div class="alert alert-primary" th:if="${error}">
+        <p th:text="${error}"></p>
+    </div>
+
 <table class="table table-striped table-hover">
     <thead class="table-dark">
     <tr>

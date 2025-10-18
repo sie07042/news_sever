@@ -7,6 +7,7 @@ import com.example.hello.news.entity.Category;
 import com.example.hello.news.service.ArticleService;
 import com.example.hello.news.service.NewsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -59,6 +60,16 @@ public class AdminController {
         }
 
         // request를 다시 만들어서 해당 request를 요청
+        return "redirect:/admin/category";
+    }
+
+    @PostMapping("/updateCategory")
+    public String updateCategory(@RequestParam("Category_Id")String categoryId,
+                                 @RequestParam("Category_Name")String categoryName,
+                                 @RequestParam("Category_Memo")String categoryMamo,
+                                 Model model){
+        newsService.updateCategory(categoryId,categoryName,categoryMamo);
+
         return "redirect:/admin/category";
     }
 
