@@ -7,13 +7,12 @@ import com.example.hello.news.entity.Category;
 import com.example.hello.news.service.ArticleService;
 import com.example.hello.news.service.NewsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -32,7 +31,7 @@ public class AdminController {
         List<CategoryDTO> categories = newsService.getCategories();
         model.addAttribute("category", categories);
 
-        return "category";
+        return "category"; // 템플릿 디렉토리에 있는 category.html을 렌더링해라
     }
 
 
@@ -63,19 +62,30 @@ public class AdminController {
         return "redirect:/admin/category";
     }
 
-    @PostMapping("/updateCategory")
-    public String updateCategory(@RequestParam("Category_Id")String categoryId,
-                                 @RequestParam("Category_Name")String categoryName,
-                                 @RequestParam("Category_Memo")String categoryMamo,
+    @PostMapping("/updateCategory/{id}")
+    public String updateCategory(@PathVariable("id")String categoryId,
+                                 @RequestParam("name")String categoryName,
+                                 @RequestParam("memo")String categoryMemo,
                                  Model model){
-        newsService.updateCategory(categoryId,categoryName,categoryMamo);
+        newsService.updateCategory(categoryId,categoryName,categoryMemo);
 
         return "redirect:/admin/category";
     }
 
+    @PostMapping("/deleteCategory/{id}")
+    public String deleteCategory(@PathVariable String id,Model model){
+        try {
+            newsService.deleteCategory(id);
+        }catch (RuntimeException e){
+            model.addAttribute("error",e.getMessage());
+            return "category";
+        }
+        return "redirect:/admin/category";
+    }
+
     @GetMapping("/source")
-    public String getSources(Model model){
-        List<SourceDTO> sources =newsService.getSources();
+    public String getSources(Model model, Pageable pageable){
+        Page<SourceDTO> sources = newsService.getSources(pageable);
         model.addAttribute("sources", sources);
 
         return "source";

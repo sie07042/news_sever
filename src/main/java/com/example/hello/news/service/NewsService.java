@@ -10,6 +10,8 @@ import com.example.hello.news.repository.SourceRepository;
 import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,6 +75,7 @@ public class NewsService {
         List<CategoryDTO> categoryDTOList= new ArrayList<>();
         for(Category category : categories){
             CategoryDTO dto = new CategoryDTO();
+            dto.setId(category.getId().toString());
             dto.setName(category.getName());
             dto.setMemo(category.getMemo());
             categoryDTOList.add(dto);
@@ -143,10 +146,10 @@ public class NewsService {
         }
     }
 
-    public List<SourceDTO> getSources(){
+    public Page<SourceDTO> getSources(Pageable pageable){
         // 데이터베이스로부터 Source Entity 리스트를 가져와서
         // 모든 source Entity 인스턴스를 SourceDTO 인스턴스로 변환하여 반환한다.
-        List<Source> sources = sourceRepository.findAll();
+        Page<Source> sources = sourceRepository.findAll(pageable);
 
         //for (Source source : sources){}
         // = 위 아래 같은 코드
@@ -158,12 +161,30 @@ public class NewsService {
         // })
         // sources.stream().forEach(source -> System.out.println(source.getName()));
 
-        return sources.stream().map(Source::toDTO).toList();
+        return sources.map(Source::toDTO);
     }
 
 
-    public CategoryDTO updateCategory(String categoryId ,String categoryName, String categoryMamo) {
-        return  null;
+    @Transactional
+    public void updateCategory(String categoryId ,String categoryName, String categoryMemo) {
+        Category category = categoryRepository.findById(Long.parseLong(categoryId))
+                .orElseThrow(()-> new RuntimeException("카테고리를 찾을 수 없습니다."));
+        category.setName(categoryName);
+        category.setMemo(categoryMemo);
+
+        categoryRepository.save(category);
+    }
+
+    @Transactional
+    public void deleteCategory(String categoryId) {
+        Category category = categoryRepository.findById(Long.parseLong(categoryId))
+                .orElseThrow(()-> new RuntimeException("카테고리를 찾을 수 없습니다."));
+
+        try {
+        categoryRepository.delete(category);
+        }catch (Exception e) {
+            throw new RuntimeException("카테고리 데이터 삭제중에 오류가발생했습니다.");
+        }
     }
 }
 
