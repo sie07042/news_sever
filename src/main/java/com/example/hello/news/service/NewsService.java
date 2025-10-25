@@ -22,6 +22,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -185,6 +186,15 @@ public class NewsService {
         }catch (Exception e) {
             throw new RuntimeException("카테고리 데이터 삭제중에 오류가발생했습니다.");
         }
+    }
+
+    public HashMap<String,Long> getRecordCount(){
+        HashMap<String,Long> counts = new HashMap<>();
+        counts.put("article",articleRepository.count());
+        counts.put("sources",sourceRepository.count());
+        counts.put("categories",categoryRepository.count());
+
+        return counts;
     }
 }
 
