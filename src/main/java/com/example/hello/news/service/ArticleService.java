@@ -26,6 +26,11 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Article 관련 비즈니스 로직을 처리하는 Service 클래스
+ * - 뉴스 API로부터 기사 데이터를 가져와 DB에 저장
+ * - 카테고리별, 소스별 기사 통계 제공
+ */
 @Service
 @RequiredArgsConstructor
 public class ArticleService {
@@ -43,82 +48,95 @@ public class ArticleService {
     private final CategoryRepository categoryRepository;
     private final SourceRepository sourceRepository;
 
+    /**
+     * 전체 기사 수 조회
+     * @return 전체 기사 개수
+     */
     @Transactional
     public Long getTotalArticleCount(){
         return articleRepository.count();
     }
 
+    /**
+     * 카테고리별 기사 수 집계
+     * @return 카테고리별 기사 개수 리스트
+     */
     public List<CountArticleByCategory> countArticleByCategories() {
         return articleRepository.countArticleByCategory();
     }
 
+    /**
+     * 특정 카테고리의 기사를 뉴스 API로부터 가져와 DB에 저장
+     * @param category 저장할 기사 카테고리명
+     * @throws URISyntaxException URI 변환 예외
+     * @throws IOException HTTP 요청/응답 관련 예외
+     * @throws InterruptedException HTTP 요청 중 인터럽트 발생
+     */
     @Transactional
     public void inputArticles(String category) throws URISyntaxException, IOException, InterruptedException, RuntimeException {
-        String url = String.format("%scategory=%s&%s",articleURL,category,apiKey);
+        String url = String.format("%scategory=%s&%s", articleURL, category, apiKey);
         System.out.println(url);
-        //https://newsapi.org/v2/top-headlines?country=us&category=business&apiKey=65671f9acbca4086bb80c8063c043563
-
 
         HttpClient client = HttpClient.newBuilder().build();
 
-        //request 인스턴스를 생성한다. (필수 : url, method(요청방법))
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(new URI(url))
                 .GET()
                 .build();
 
-        //client에서 request를 보내고 response를 문자열 형태로 받아온다.
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         String resBody = response.body();
 
         Gson gson = new Gson();
-        NewsResponse newsResponse = gson.fromJson(resBody,NewsResponse.class);
-        System.out.println(newsResponse.getStatus());
-        System.out.println(newsResponse.getTotalResults());
-        System.out.println(newsResponse.getArticles()[0].getAuthor());
+        NewsResponse newsResponse = gson.fromJson(resBody, NewsResponse.class);
 
-        saveArticles(newsResponse,category);
+        saveArticles(newsResponse, category);
     }
 
-    public void saveArticles(NewsResponse newsResponse,String category){
+    /**
+     * NewsResponse 객체로부터 기사 데이터를 DB에 저장
+     * 이미 존재하는 기사 URL은 저장하지 않음
+     * @param newsResponse 뉴스 API 응답 객체
+     * @param category 기사 카테고리명
+     */
+    public void saveArticles(NewsResponse newsResponse, String category){
         try {
             for(ArticleDTO article : newsResponse.getArticles()){
                 if (article.getUrl() != null){
-                    // 이미 입력된 URL이 존재한다면 skip
+                    // 이미 입력된 URL이 존재하면 skip
                     boolean exists = articleRepository.findByUrl(article.getUrl()).isPresent();
                     if (exists) continue;
                 }
 
-                // 이미 기존에 입력되어 있는 source가 있으면 DB에서 찾아서 인스턴스를 만들고
+                // 기존에 존재하는 Source가 있으면 가져오고, 없으면 새로 생성
                 Optional<Source> srcOpt = sourceRepository.findByName(article.getSource().getName());
-                //            Source src = srcOpt.get();
-                // 안전한 처리를 위해
-                // 없으면 새로 생성(srcOpt안에 인스턴스의 값이 null임)a
-                Source src = srcOpt.orElseGet( () ->{
+                Source src = srcOpt.orElseGet(() -> {
                     Source s1 = new Source();
                     s1.setName(article.getSource().getName());
                     return sourceRepository.save(s1);
                 });
 
-                Optional<Category> catOPt = categoryRepository.findByName(category);
-                Category cat = catOPt.orElseGet(() ->{
+                // 기존에 존재하는 Category가 있으면 가져오고, 없으면 새로 생성
+                Optional<Category> catOpt = categoryRepository.findByName(category);
+                Category cat = catOpt.orElseGet(() -> {
                     Category c = new Category();
                     c.setName(category);
-                    return  categoryRepository.save(c);
+                    return categoryRepository.save(c);
                 });
 
-                Article article1= Article.fromDTO(article,src,cat);
-                articleRepository.save(article1);
+                Article articleEntity = Article.fromDTO(article, src, cat);
+                articleRepository.save(articleEntity);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    /**
+     * 소스별 기사 수 상위 10개 조회
+     * @return 상위 10개 소스별 기사 개수 리스트
+     */
     public List<SourceByArticleDTO> getArticleCountBySource() {
-        // JPA : Jakarta Persistanc
-        // JPQL : JPA 전용 Query Language
-        // 기사가 많은 순서대로 상위 10개만 가져온다.
-        return articleRepository.countArticleBySource(PageRequest.of(0,10));
+        return articleRepository.countArticleBySource(PageRequest.of(0, 10));
     }
 }

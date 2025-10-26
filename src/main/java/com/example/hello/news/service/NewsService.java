@@ -11,7 +11,9 @@ import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +46,16 @@ public class NewsService {
 
     // @Autowired   //위에랑 같은 코드임 (@RequiredArgsConstructor 없이 쓰는 법)
     //private CategoryRepository categoryRepository;
+
+    public Page<ArticleDTO> getArticles(Pageable pageable){
+        // 페이징 리퀘스트르 발행일자로 내림차순 정렬하여 만든다.
+        Pageable sorted = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC,"publishedAt"));
+
+        return articleRepository.findAll(sorted).map(Article::toDTO);
+    }
 
     public NewsResponse getGeneral() throws URISyntaxException, IOException, InterruptedException {
         String url = "https://newsapi.org/v2/top-headlines?country=us&apiKey=65671f9acbca4086bb80c8063c043563";
